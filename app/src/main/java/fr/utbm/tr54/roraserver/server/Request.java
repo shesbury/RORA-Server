@@ -14,7 +14,7 @@ public class Request {
     boolean route;
     public Request(JSONObject obj,Robot r) throws JSONException {
         host = r;
-        crossRequest = obj.getBoolean("CrossRequest");
+        crossRequest = obj.getBoolean("crossRequest");
         route = obj.getBoolean("currentRoute");
         //Can change : how to check the first request for crossing not to reset time for each request
         if(!host.isWaiting){
