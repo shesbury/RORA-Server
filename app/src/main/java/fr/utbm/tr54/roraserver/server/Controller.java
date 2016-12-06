@@ -43,7 +43,7 @@ public class Controller implements BroadcastListener,Runnable {
 	private void parseJSON(JSONObject obj) throws JSONException {
 		
 		String robotName = obj.getString("name");
-		fleet.get(robotName).currentRoute = obj.getInt("currentRoute");
+		fleet.get(robotName).currentRoute = obj.getBoolean("currentRoute");
 		fleet.get(robotName).isCrossing = obj.getBoolean("isCrossing");
 		fleet.get(robotName).isWaiting = obj.getBoolean("isWaiting");
 	}

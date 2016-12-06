@@ -6,7 +6,7 @@ import org.json.JSONObject;
 public class Robot {
 	String name;
 	//Route is 0 or 1 defined at the start
-	int currentRoute;
+	boolean currentRoute;
 	//when robot is in the CrossingQueue
 	boolean isCrossing;
 	//When the robot is waiting
@@ -17,14 +17,14 @@ public class Robot {
 	
 	public Robot(JSONObject obj) throws JSONException {
 		this.name = obj.getString("name");
-		this.currentRoute = obj.getInt("currentRoute");
+		this.currentRoute = obj.getBoolean("currentRoute");
 		this.isCrossing = obj.getBoolean("isCrossing");
 		this.isWaiting = obj.getBoolean("isWaiting");
 	}
 
 	public void update(JSONObject obj) throws JSONException {
 		this.name = obj.getString("name");
-		this.currentRoute = obj.getInt("currentRoute");
+		this.currentRoute = obj.getBoolean("currentRoute");
 		this.isCrossing = obj.getBoolean("isCrossing");
 		this.isWaiting = obj.getBoolean("isWaiting");
 	}
