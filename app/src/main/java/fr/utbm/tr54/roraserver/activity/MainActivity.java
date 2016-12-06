@@ -17,10 +17,12 @@ import fr.utbm.tr54.roraserver.R;
 import fr.utbm.tr54.roraserver.network.ClientScanResult;
 import fr.utbm.tr54.roraserver.network.FinishScanListener;
 import fr.utbm.tr54.roraserver.network.WifiApManager;
+import fr.utbm.tr54.roraserver.server.Controller;
 
 public class MainActivity extends AppCompatActivity {
     TextView textView1;
     WifiApManager wifiApManager;
+    Controller controller;
 
     /** Called when the activity is first created. */
     @Override
@@ -30,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
         textView1 = (TextView) findViewById(R.id.textView1);
         wifiApManager = new WifiApManager(this);
+        controller = new Controller();
 
         scan();
     }
@@ -48,6 +51,10 @@ public class MainActivity extends AppCompatActivity {
                     textView1.append("HWAddr: " + clientScanResult.getHWAddr() + "\n");
                     textView1.append("isReachable: " + clientScanResult.isReachable() + "\n");
                 }
+
+                Thread thread = new Thread(controller);
+                thread.start();
+
             }
         });
     }
