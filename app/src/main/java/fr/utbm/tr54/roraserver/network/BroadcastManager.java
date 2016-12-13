@@ -48,7 +48,7 @@ public class BroadcastManager implements AutoCloseable {
 	 */
 	public void broadcast(byte[] message) throws IOException {
 		try {
-			final DatagramPacket datagramPacket = new DatagramPacket(message, message.length, InetAddress.getByName("255.255.255.255"), 8888);
+			final DatagramPacket datagramPacket = new DatagramPacket(message, message.length, InetAddress.getByName("192.168.43.255"), 8888);
 			
 			this.socket.send(datagramPacket);
 		} catch (UnknownHostException e) {

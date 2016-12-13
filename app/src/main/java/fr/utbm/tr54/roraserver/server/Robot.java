@@ -16,16 +16,38 @@ public class Robot {
 	long requestTime;
 	
 	public Robot(JSONObject obj) throws JSONException {
-		this.name = obj.getString("name");
-		this.currentRoute = obj.getBoolean("currentRoute");
-		this.isCrossing = obj.getBoolean("isCrossing");
-		this.isWaiting = obj.getBoolean("isWaiting");
+		if (obj.has("name")) {
+			this.name = obj.getString("name");
+		}
+
+		if (obj.has("currentRoute")) {
+			this.currentRoute = obj.getBoolean("currentRoute");
+		}
+
+		if (obj.has("isCrossing")) {
+			this.isCrossing = obj.getBoolean("isCrossing");
+		}
+
+		if (obj.has("isWaiting")) {
+			this.isWaiting = obj.getBoolean("isWaiting");
+		}
 	}
 
 	public void update(JSONObject obj) throws JSONException {
-		this.name = obj.getString("name");
-		this.currentRoute = obj.getBoolean("currentRoute");
-		this.isCrossing = obj.getBoolean("isCrossing");
-		this.isWaiting = obj.getBoolean("isWaiting");
+		if (obj.has("name")) {
+			this.name = obj.getString("name");
+		}
+
+		if (obj.has("currentRoute")) {
+			this.currentRoute = obj.getBoolean("currentRoute");
+		}
+
+		if (obj.has("isCrossing")) {
+			this.isCrossing = obj.getBoolean("isCrossing");
+		}
+
+		if (obj.has("isWaiting")) {
+			this.isWaiting = obj.getBoolean("isWaiting");
+		}
 	}
 }
