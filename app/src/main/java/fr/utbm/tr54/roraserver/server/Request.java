@@ -9,16 +9,18 @@ import java.util.Calendar;
 
 public class Request {
 
-    Robot host;
+    String robotName;
     boolean crossRequest;
     boolean route;
-    public Request(JSONObject obj,Robot r) throws JSONException {
-        host = r;
+    long requestTime;
+    long queueTime;
+    public Request(JSONObject obj) throws JSONException {
+        robotName = obj.getString("name");
         crossRequest = obj.getBoolean("crossRequest");
         route = obj.getBoolean("currentRoute");
         //Can change : how to check the first request for crossing not to reset time for each request
-        if(!host.isWaiting){
-            host.requestTime = System.currentTimeMillis();
+        if(!obj.getBoolean("isWaiting")){
+            requestTime = System.currentTimeMillis();
         }
     }
 }

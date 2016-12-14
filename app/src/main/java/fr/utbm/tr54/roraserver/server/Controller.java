@@ -19,7 +19,7 @@ public class Controller implements BroadcastListener,Runnable {
 	boolean running;
 	HashMap<String,Robot> fleet;
     ConcurrentLinkedQueue<Request> requestList;
-    ConcurrentLinkedQueue<Robot> queue;
+    ConcurrentLinkedQueue<Request> queue;
 	int msg;
 	
 	public void start(){
@@ -32,7 +32,7 @@ public class Controller implements BroadcastListener,Runnable {
 
 		fleet = new HashMap<String,Robot>();
 		requestList = new ConcurrentLinkedQueue<Request>();
-		queue = new ConcurrentLinkedQueue<Robot>();
+		queue = new ConcurrentLinkedQueue<Request>();
 	}
 	
 	@Override
@@ -42,7 +42,7 @@ public class Controller implements BroadcastListener,Runnable {
 		String messageS = new String(message);
 		JSONObject obj = new JSONObject (messageS);
 		//System.out.println(messageS);
-/*
+
         if (obj.has("sender")) {
             Log.i("I/", "MESSAGE FROM THE SERVER");
         }
@@ -66,19 +66,19 @@ public class Controller implements BroadcastListener,Runnable {
 			Log.i("I/json crossR ", String.valueOf(obj.getBoolean("crossRequest")));
 		}
 
-*/
+
 
 		// message from the server
 		if (obj.has("sender")) {
 			return;
 		}
 
-		if(!fleet.containsKey(obj.getString("name"))){
+		/*if(!fleet.containsKey(obj.getString("name"))){
 			fleet.put(obj.getString("name"), new Robot(obj));
 		} else {
 			fleet.get(obj.getString("name")).update(obj);
-		}
-		requestList.add(new Request(obj,fleet.get(obj.getString("name"))));
+		}*/
+		requestList.add(new Request(obj));
 	}
 	
 	private void parseJSON(JSONObject obj) throws JSONException {
@@ -98,87 +98,65 @@ public class Controller implements BroadcastListener,Runnable {
 			//Not sure we need to do that if (problem if message are received during while statement)
 			//if (eventList.size() == fleet.size()){
 				//copy or reference?
-				ConcurrentLinkedQueue<Request> tempList = new ConcurrentLinkedQueue<>(requestList);
+				/*ConcurrentLinkedQueue<Request> tempList = new ConcurrentLinkedQueue<>(requestList);
 				while(!requestList.isEmpty()){
 					requestList.poll();
+				}*/
+
+				while (!requestList.isEmpty()) {
+					r = requestList.poll();
+					if(!queue.isEmpty())
+						if(System.currentTimeMillis() - queue.peek().queueTime > 13000){
+							queue.poll();
+						}
+					if (!r.crossRequest) {
+						queue.poll();
+					} else {
+						if (queue.isEmpty()) {
+							queue.add(r);
+							r.queueTime = System.currentTimeMillis();
+							sendMessage(r.robotName, true, false, queue.size());
+					/*} else if(r.route != queue.peek().route && (System.currentTimeMillis() - r.requestTime) >= 15000) {
+						queue.add(r);
+						r.queueTime = System.currentTimeMillis();
+						sendMessage(r.robotName,true,false,queue.size());
+						*/
+
+						} else {
+							if (r.route == queue.peek().route) {
+								queue.add(r);
+								r.queueTime = System.currentTimeMillis();
+								sendMessage(r.robotName, true, false, queue.size());
+							} else {
+								sendMessage(r.robotName, false, true, 0);
+							}
+						}
+					}
 				}
-
-				while (!tempList.isEmpty()) {
-                    r = tempList.peek();
-                    tempList.poll();
-
-                    if (!r.crossRequest) {
-                        queue.poll();
-                    } else {
-
-                        if (queue.isEmpty()) {
-                            queue.add(r.host);
-                            JSONObject obj = new JSONObject();
-                            try {
-                                obj.put("sender", "server");
-                                obj.put("name", r.host.name);
-                                obj.put("isCrossing", true);// test : change to true
-                                obj.put("isWaiting", false);
-                                //obj.put("isWaiting",false);// a enlever apres test
-                                obj.put("position", queue.size());
-                                BroadcastManager.getInstance().broadcast(obj.toString().getBytes());
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-					/*} else if(r.host.currentRoute != queue.peek().currentRoute && (System.currentTimeMillis() - r.host.requestTime) >= 15000) {
-						queue.add(r.host);
-						JSONObject obj = new JSONObject ();
-						try {
-							obj.put("sender","server");
-							obj.put("name",r.host.name);
-							obj.put("isCrossing",true);
-							obj.put("isWaiting",false);
-                            obj.put("position",queue.size());
-							BroadcastManager.getInstance().broadcast(obj.toString().getBytes());
-						} catch (IOException e) {
-							e.printStackTrace();
-						} catch (JSONException e) {
-							e.printStackTrace();
-						}*/
-                        } else {
-
-//                            if (r.host.currentRoute == queue.peek().currentRoute) {
-//                                queue.add(r.host);
-//                                JSONObject obj = new JSONObject();
-//                                try {
-//                                    obj.put("sender", "server");
-//                                    obj.put("name", r.host.name);
-//                                    obj.put("isCrossing", true); // test change to true
-//                                    obj.put("position", queue.size());
-//                                    obj.put("isWaiting", false);
-//                                    BroadcastManager.getInstance().broadcast(obj.toString().getBytes());
-//                                } catch (IOException e) {
-//                                    e.printStackTrace();
-//                                } catch (JSONException e) {
-//                                    e.printStackTrace();
-//                                }
-//                            } else {
-                                JSONObject obj = new JSONObject();
-                                try {
-                                    obj.put("sender", "server");
-                                    obj.put("name", r.host.name);
-                                    obj.put("isCrossing", false);
-                                    obj.put("isWaiting", true);
-                                    BroadcastManager.getInstance().broadcast(obj.toString().getBytes());
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-
-                        }
-                    }
-                }
-			//}
 		}
 	}
-	
 
+	/**
+	 *
+	 * @param robotName
+	 * @param isCrossing
+	 * @param isWaiting
+     * @param position *0 when we don't send the position
+     */
+	public void sendMessage(String robotName, boolean isCrossing, boolean isWaiting,int position){
+		JSONObject obj = new JSONObject();
+		try {
+			obj.put("sender", "server");
+			obj.put("name",robotName);
+			obj.put("isCrossing", isCrossing);
+			obj.put("isWaiting", isWaiting);
+			if(position != 0)
+				obj.put("position",position);
+			BroadcastManager.getInstance().broadcast(obj.toString().getBytes());
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
 }
