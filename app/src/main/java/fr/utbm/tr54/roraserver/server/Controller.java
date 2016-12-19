@@ -15,10 +15,15 @@ import fr.utbm.tr54.roraserver.network.BroadcastListener;
 import fr.utbm.tr54.roraserver.network.BroadcastManager;
 import fr.utbm.tr54.roraserver.network.BroadcastReceiver;
 
+/**
+ * Controller : handle the request traffic of all robots and sends
+ * order to the robots about what to do given their situation.
+ */
 public class Controller implements BroadcastListener,Runnable {
-	boolean running;
-	HashMap<String,Robot> fleet;
+
+	//requestList is the list of request sent on the network and received by the server
     ConcurrentLinkedQueue<Request> requestList;
+	// The queue is filled with robots that are authorized to cross
     ConcurrentLinkedQueue<Request> queue;
 	int msg;
 	
@@ -29,8 +34,6 @@ public class Controller implements BroadcastListener,Runnable {
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
-
-		fleet = new HashMap<String,Robot>();
 		requestList = new ConcurrentLinkedQueue<Request>();
 		queue = new ConcurrentLinkedQueue<Request>();
 	}
@@ -66,28 +69,11 @@ public class Controller implements BroadcastListener,Runnable {
 			Log.i("I/json crossR ", String.valueOf(obj.getBoolean("crossRequest")));
 		}
 
-
-
 		// message from the server
 		if (obj.has("sender")) {
 			return;
 		}
-
-		/*if(!fleet.containsKey(obj.getString("name"))){
-			fleet.put(obj.getString("name"), new Robot(obj));
-		} else {
-			fleet.get(obj.getString("name")).update(obj);
-		}*/
 		requestList.add(new Request(obj));
-	}
-	
-	private void parseJSON(JSONObject obj) throws JSONException {
-		
-		String robotName = obj.getString("name");
-
-		fleet.get(robotName).currentRoute = obj.getBoolean("currentRoute");
-		fleet.get(robotName).isCrossing = obj.getBoolean("isCrossing");
-		fleet.get(robotName).isWaiting = obj.getBoolean("isWaiting");
 	}
 
 	@Override
@@ -95,8 +81,6 @@ public class Controller implements BroadcastListener,Runnable {
 		Request r;
 		start();
 		while(true){
-			//Not sure we need to do that if (problem if message are received during while statement)
-			//if (eventList.size() == fleet.size()){
 				//copy or reference?
 				/*ConcurrentLinkedQueue<Request> tempList = new ConcurrentLinkedQueue<>(requestList);
 				while(!requestList.isEmpty()){
@@ -137,7 +121,7 @@ public class Controller implements BroadcastListener,Runnable {
 	}
 
 	/**
-	 *
+	 * Send a message to a robot on the network(robot specified by his name)
 	 * @param robotName
 	 * @param isCrossing
 	 * @param isWaiting

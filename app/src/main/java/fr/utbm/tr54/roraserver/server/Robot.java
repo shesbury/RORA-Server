@@ -33,6 +33,11 @@ public class Robot {
 		}
 	}
 
+	/**
+	 * update the status of a robot when receiving a JSON request
+	 * @param obj
+	 * @throws JSONException
+     */
 	public void update(JSONObject obj) throws JSONException {
 		if (obj.has("name")) {
 			this.name = obj.getString("name");
