@@ -44,7 +44,6 @@ public class Controller implements BroadcastListener,Runnable {
 
 		String messageS = new String(message);
 		JSONObject obj = new JSONObject (messageS);
-		//System.out.println(messageS);
 
         if (obj.has("sender")) {
             Log.i("I/", "MESSAGE FROM THE SERVER");
@@ -70,26 +69,25 @@ public class Controller implements BroadcastListener,Runnable {
 		}
 
 		// message from the server
-		if (obj.has("sender")) {
+		if (obj.has("sender") || obj.getString("name").equals("INIT")) {
 			return;
 		}
 		requestList.add(new Request(obj));
 	}
 
 	@Override
+	/**
+	 * Loop of the controller that manage the requests and send messages/orders to the robots
+	 * corresponding to their status
+	 */
 	public void run() {
 		Request r;
 		start();
 		while(true){
-				//copy or reference?
-				/*ConcurrentLinkedQueue<Request> tempList = new ConcurrentLinkedQueue<>(requestList);
-				while(!requestList.isEmpty()){
-					requestList.poll();
-				}*/
-
 				while (!requestList.isEmpty()) {
 					r = requestList.poll();
 					if(!queue.isEmpty())
+						//this security may cause problems but we added it to make sure a robot is not in queue forever
 						if(System.currentTimeMillis() - queue.peek().queueTime > 13000){
 							queue.poll();
 						}
@@ -100,12 +98,6 @@ public class Controller implements BroadcastListener,Runnable {
 							queue.add(r);
 							r.queueTime = System.currentTimeMillis();
 							sendMessage(r.robotName, true, false, queue.size());
-					/*} else if(r.route != queue.peek().route && (System.currentTimeMillis() - r.requestTime) >= 15000) {
-						queue.add(r);
-						r.queueTime = System.currentTimeMillis();
-						sendMessage(r.robotName,true,false,queue.size());
-						*/
-
 						} else {
 							if (r.route == queue.peek().route) {
 								queue.add(r);
