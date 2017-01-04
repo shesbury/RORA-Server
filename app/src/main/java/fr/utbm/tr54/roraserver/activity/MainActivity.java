@@ -19,13 +19,21 @@ import fr.utbm.tr54.roraserver.network.FinishScanListener;
 import fr.utbm.tr54.roraserver.network.WifiApManager;
 import fr.utbm.tr54.roraserver.server.Controller;
 
+/**
+ * Main and only activity of our app.
+ * @author Ruby  Hossain Saib
+ */
 public class MainActivity extends AppCompatActivity {
     TextView textView1;
     WifiApManager wifiApManager;
     Controller controller;
 
-    /** Called when the activity is first created. */
-    @Override
+    /**
+     * Called when the activity is first created.
+     * Setup the view and create all the necessary tools of our app :
+     * Controller and wifiApManager
+     * @param savedInstanceState
+     */
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -37,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
         scan();
     }
 
+    /**
+     * Trigger a scan of the connected device and draw them in the textView
+     * starts a new Thread of the controller
+     */
     private void scan() {
         wifiApManager.getClientList(false, new FinishScanListener() {
 
@@ -59,13 +71,24 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Manage creation of the overall view and option buttons.
+     * @param menu
+     * @return
+     */
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_main, menu);
 
         return super.onCreateOptionsMenu(menu);
     }
-    @Override
+
+    /**
+     * Manage buttons and here specifically refresh button to
+     * update the connected devices and restart controller's thread
+     * @param item
+     * @return
+     */
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_refresh:

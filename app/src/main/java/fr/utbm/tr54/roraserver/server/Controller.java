@@ -4,11 +4,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingDeque;
 import org.json.*;
 
 import fr.utbm.tr54.roraserver.network.BroadcastListener;
@@ -18,6 +14,7 @@ import fr.utbm.tr54.roraserver.network.BroadcastReceiver;
 /**
  * Controller : handle the request traffic of all robots and sends
  * order to the robots about what to do given their situation.
+ * @author Olivier
  */
 public class Controller implements BroadcastListener,Runnable {
 
@@ -25,8 +22,13 @@ public class Controller implements BroadcastListener,Runnable {
     ConcurrentLinkedQueue<Request> requestList;
 	// The queue is filled with robots that are authorized to cross
     ConcurrentLinkedQueue<Request> queue;
+	// message counter
 	int msg;
-	
+
+	/**
+	 * Initialize message count, add Controller as a listener of the broadcast system
+	 * and create the lists
+	 */
 	public void start(){
 		try {
 			msg = 0;
@@ -37,10 +39,15 @@ public class Controller implements BroadcastListener,Runnable {
 		requestList = new ConcurrentLinkedQueue<Request>();
 		queue = new ConcurrentLinkedQueue<Request>();
 	}
-	
-	@Override
+
+	/**
+	 * Manage all messages on the network.
+	 * If the message is from the server then it's ignored, otherwise it's added to
+	 * the requestList.
+	 * @param message the raw message
+	 * @throws JSONException
+     */
 	public void onBroadcastReceived(byte[] message) throws JSONException {
-		// TODO Auto-generated method stub
 
 		String messageS = new String(message);
 		JSONObject obj = new JSONObject (messageS);
@@ -83,26 +90,38 @@ public class Controller implements BroadcastListener,Runnable {
 	public void run() {
 		Request r;
 		start();
+		//infinite loop
 		while(true){
+				//Server has to handle every single request
 				while (!requestList.isEmpty()) {
+					//Server takes the first request
 					r = requestList.poll();
+
+					//Server check if there is robots crossing now
 					if(!queue.isEmpty())
-						//this security may cause problems but we added it to make sure a robot is not in queue forever
-						if(System.currentTimeMillis() - queue.peek().queueTime > 13000){
+						//this security may cause problems but we added it to make sure a robot is not in queue forever.
+						//if the first robot of the queue is here for too long then we remove it from the crossing queue.
+						if(System.currentTimeMillis() - queue.peek().queueTime > 20000){
 							queue.poll();
 						}
+					//if it's not a cross request then it's a notification that the robot exits the intersection
+					//so the server remove it from the queue.
 					if (!r.crossRequest) {
 						queue.poll();
+					//if this is a cross request :
 					} else {
+						//first case: queue is empty --> the way is clear. Robot can go.
 						if (queue.isEmpty()) {
 							queue.add(r);
 							r.queueTime = System.currentTimeMillis();
 							sendMessage(r.robotName, true, false, queue.size());
 						} else {
+							//second case: the route is the same as the busy one --> Robot can go.
 							if (r.route == queue.peek().route) {
 								queue.add(r);
 								r.queueTime = System.currentTimeMillis();
 								sendMessage(r.robotName, true, false, queue.size());
+							//last case: the Robot can't cross, server send him to wait
 							} else {
 								sendMessage(r.robotName, false, true, 0);
 							}
@@ -114,6 +133,7 @@ public class Controller implements BroadcastListener,Runnable {
 
 	/**
 	 * Send a message to a robot on the network(robot specified by his name)
+	 * message : {JSON message {sender}{name}{isCrossing}{isWaiting}{position}}
 	 * @param robotName
 	 * @param isCrossing
 	 * @param isWaiting

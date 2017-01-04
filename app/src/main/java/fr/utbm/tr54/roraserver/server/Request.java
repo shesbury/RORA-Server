@@ -2,8 +2,10 @@ package fr.utbm.tr54.roraserver.server;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.util.Calendar;
+
+
 /**
+ * Requests are created for every messages received by the server from the robots
  * Created by Olivier on 29/11/2016.
  */
 
@@ -14,6 +16,12 @@ public class Request {
     boolean route;
     long requestTime;
     long queueTime;
+
+    /**
+     * Initialize a request from a JSON Object
+     * @param obj
+     * @throws JSONException
+     */
     public Request(JSONObject obj) throws JSONException {
         robotName = obj.getString("name");
         crossRequest = obj.getBoolean("crossRequest");
